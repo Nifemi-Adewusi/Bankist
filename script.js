@@ -67,10 +67,6 @@ const inputLoanAmount = document.querySelector('.form__input--loan-amount');
 const inputCloseUsername = document.querySelector('.form__input--user');
 const inputClosePin = document.querySelector('.form__input--pin');
 
-/////////////////////////////////////////////////
-/////////////////////////////////////////////////
-// LECTURES
-
 const currencies = new Map([
   ['USD', 'United States dollar'],
   ['EUR', 'Euro'],
@@ -80,22 +76,30 @@ const currencies = new Map([
 const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
 
 /////////////////////////////////////////////////
-function currentUserTransactions(transactions) {
+function currentUserTransactions(transactions, sort = false) {
   containerMovements.innerHTML = '';
-  transactions.forEach(function (transaction, transactionIndex) {
+  const sorted = sort
+    ? transactions.slice().sort(function (a, b) {
+        if (a < b) {
+          return -1;
+        }
+        if (a > b) {
+          return 1;
+        }
+      })
+    : transactions;
+  sorted.forEach(function (transaction, transactionIndex) {
     const transactionType = transaction > 0 ? 'deposit' : 'withdrawal';
     const allTransactions = ` <div class="movements__row">
           <div class="movements__type movements__type--${transactionType}">${
       transactionIndex + 1
     } ${transactionType}</div>
           <div class="movements__date"></div>
-          <div class="movements__value">${transaction}</div>
+          <div class="movements__value">${transaction}€</div>
         </div>`;
     containerMovements.insertAdjacentHTML('afterbegin', allTransactions);
   });
 }
-
-currentUserTransactions(account1.transactions);
 
 function createUserName(accArray) {
   accArray.forEach(function (acc) {
@@ -110,8 +114,6 @@ function createUserName(accArray) {
 }
 
 createUserName(accounts);
-
-console.log(account1);
 
 function calculateAllBalances(accs) {
   accs.forEach(function (acc) {
@@ -160,6 +162,33 @@ function calculateAllBalances(accs) {
 
 calculateAllBalances(accounts);
 
+function getFirstName(user) {
+  const userStr = user.split(' ');
+  const firstIndex = userStr[0];
+  const firstCharIndex = firstIndex[0].toUpperCase() + firstIndex.slice(1);
+  return firstCharIndex;
+}
+
+function clearInputFields() {
+  inputClosePin.value =
+    inputCloseUsername.value =
+    inputLoanAmount.value =
+    inputLoginPin.value =
+    inputLoginUsername.value =
+    inputTransferAmount.value =
+    inputTransferTo.value =
+      '';
+}
+
+function hideUi() {
+  containerApp.style.opacity = 0;
+}
+
+function logOut() {
+  hideUi();
+  labelWelcome.textContent = 'Log in to get started';
+}
+
 let currentUser;
 
 function updateUi(currentUser) {
@@ -168,17 +197,111 @@ function updateUi(currentUser) {
   labelSumIn.textContent = `${currentUser.totalDeposits}€`;
   labelSumOut.textContent = `${currentUser.totalWithdrawals}€`;
   labelSumInterest.textContent = `${currentUser.totalInterest}€`;
+  labelWelcome.textContent = `Good Day, ${getFirstName(currentUser.owner)}`;
 }
 
 // Implementing Login.
 btnLogin.addEventListener('click', function (e) {
   e.preventDefault();
-  const userLoginInitials = inputLoginUsername.value;
+  const userLoginInitials = inputLoginUsername.value.toLowerCase();
   const userLoginPin = Number(inputLoginPin.value);
   currentUser = accounts.find(function (account) {
     return (
       account.pin === userLoginPin && userLoginInitials === account.initials
     );
   });
-  updateUi(currentUser);
+  if (currentUser) {
+    currentUserTransactions(currentUser.transactions);
+    updateUi(currentUser);
+    clearInputFields();
+  } else {
+    const matchingUser = accounts.find(function (account) {
+      return account.initials === userLoginInitials;
+    });
+    if (typeof matchingUser === 'undefined') {
+      labelWelcome.textContent = `Incorrect Username Or Password`;
+      hideUi();
+      clearInputFields();
+    }
+    if (matchingUser) {
+      labelWelcome.textContent = 'Incorrect Password';
+      hideUi();
+      clearInputFields();
+    }
+  }
+});
+
+// Request Loan.
+btnLoan.addEventListener('click', function (e) {
+  e.preventDefault();
+  const userLoanInput = Number(inputLoanAmount.value);
+  clearInputFields();
+
+  const loanValidity = currentUser.transactions.some(function (value) {
+    return value >= userLoanInput * 0.1;
+  });
+  if (loanValidity) {
+    setTimeout(function () {
+      currentUser.transactions.push(userLoanInput);
+      calculateAllBalances(accounts);
+      updateUi(currentUser);
+      currentUserTransactions(currentUser.transactions);
+    }, 3000);
+  } else {
+    clearInputFields();
+    alert(
+      `${getFirstName(
+        currentUser.owner
+      )} Is Not Eligible For A Loan Of ${userLoanInput}`
+    );
+  }
+});
+
+btnTransfer.addEventListener('click', function (e) {
+  e.preventDefault();
+  const userTransferTo = inputTransferTo.value.toLowerCase();
+  const amountToTransfer = Number(inputTransferAmount.value);
+  const userToTransferTo = accounts.find(function (value) {
+    return value.initials === userTransferTo;
+  });
+  console.log(userToTransferTo.initials);
+  if (
+    userToTransferTo &&
+    userToTransferTo.initials === userTransferTo &&
+    userTransferTo !== currentUser.initials &&
+    currentUser.totalBalance >= amountToTransfer
+  ) {
+    currentUser.transactions.push(-amountToTransfer);
+    userToTransferTo.transactions.push(amountToTransfer);
+    calculateAllBalances(accounts);
+    currentUserTransactions(currentUser.transactions);
+    updateUi(currentUser);
+    clearInputFields();
+  }
+});
+
+// Closing Account
+btnClose.addEventListener('click', function (e) {
+  e.preventDefault();
+  const userCredentialsUserName = inputCloseUsername.value;
+  const userCredentialsPin = Number(inputClosePin.value);
+  console.log('Hello');
+  if (
+    currentUser.initials === userCredentialsUserName &&
+    currentUser.pin === userCredentialsPin
+  ) {
+    console.log('Correct');
+    const elementIndex = accounts.findIndex(function (value) {
+      return value.pin === userCredentialsPin;
+    });
+    accounts.splice(elementIndex, 1);
+    logOut();
+  }
+});
+
+let isSorted = false;
+btnSort.addEventListener('click', function (e) {
+  e.preventDefault();
+  currentUserTransactions(currentUser.transactions, !isSorted);
+  isSorted = !isSorted;
 });
