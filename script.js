@@ -120,10 +120,10 @@ const currencies = new Map([
 const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
 
 /////////////////////////////////////////////////
-function currentUserTransactions(transactions, sort = false) {
+function currentUserTransactions(account, sort = false) {
   containerMovements.innerHTML = '';
   const sorted = sort
-    ? transactions.slice().sort(function (a, b) {
+    ? account.transactions.slice().sort(function (a, b) {
         if (a < b) {
           return -1;
         }
@@ -131,14 +131,23 @@ function currentUserTransactions(transactions, sort = false) {
           return 1;
         }
       })
-    : transactions;
+    : account.transactions;
   sorted.forEach(function (transaction, transactionIndex) {
     const transactionType = transaction > 0 ? 'deposit' : 'withdrawal';
+    const date = new Date(account.movementsDates[transactionIndex]);
+    const month = `${date.getMonth() + 1}`.padStart(2, 0);
+    const year = `${date.getFullYear()}`;
+    const dayDate = `${date.getDate()}`.padStart(2, 0);
+    const hours = `${date.getHours()}`.padStart(2, 0);
+    const minutes = `${date.getMinutes()}`.padStart(2, 0);
+    // const timeFrame = hours < 12 ? 'am' : 'pm';
+    const displayDate = `${dayDate}/${month}/${year}`;
+
     const allTransactions = ` <div class="movements__row">
           <div class="movements__type movements__type--${transactionType}">${
       transactionIndex + 1
     } ${transactionType}</div>
-          <div class="movements__date"></div>
+          <div class="movements__date">${displayDate}</div>
           <div class="movements__value">${transaction.toFixed(2)}€</div>
         </div>`;
     containerMovements.insertAdjacentHTML('afterbegin', allTransactions);
@@ -158,6 +167,23 @@ function createUserName(accArray) {
 }
 
 createUserName(accounts);
+
+function checkTimeOfTheDay() {
+  const currentTime = Date.now();
+  const dateObject = new Date(currentTime);
+  const hour = dateObject.getHours();
+  if (hour >= 12 && hour <= 16) {
+    return 'Good Afternoon';
+  } else if (hour >= 17 && hour <= 20) {
+    return 'Good Evening';
+  } else if (hour >= 21) {
+    return 'Good Night';
+  } else if (hour >= 0 && hour <= 3) {
+    return 'You Should Be In Bed.';
+  } else if (hour >= 3 && hour <= 11) {
+    return 'Good Morning';
+  }
+}
 
 function calculateAllBalances(accs) {
   accs.forEach(function (acc) {
@@ -232,13 +258,27 @@ function logOut() {
 
 let currentUser;
 
+function showDate() {
+  const now = new Date(Date.now());
+  const day = `${now.getDate()}`.padStart(2, 0);
+  const month = `${now.getMonth() + 1}`.padStart(2, 0);
+  const hours = `${now.getHours()}`.padStart(2, 0);
+  const minutes = `${now.getMinutes()}`.padStart(2, 0);
+  const amOrPm = now.getHours() >= 12 ? 'pm' : 'am';
+
+  labelDate.textContent = `${day}/${month}/${now.getFullYear()},${hours}:${minutes}${amOrPm}`;
+}
+
 function updateUi(currentUser) {
   containerApp.style.opacity = 1;
   labelBalance.textContent = `${currentUser.totalBalance}€`;
   labelSumIn.textContent = `${currentUser.totalDeposits}€`;
   labelSumOut.textContent = `${currentUser.totalWithdrawals}€`;
   labelSumInterest.textContent = `${currentUser.totalInterest}€`;
-  labelWelcome.textContent = `Good Day, ${getFirstName(currentUser.owner)}`;
+  labelWelcome.textContent = `${checkTimeOfTheDay()}, ${getFirstName(
+    currentUser.owner
+  )}`;
+  showDate();
 }
 
 // Implementing Login.
@@ -252,7 +292,7 @@ btnLogin.addEventListener('click', function (e) {
     );
   });
   if (currentUser) {
-    currentUserTransactions(currentUser.transactions);
+    currentUserTransactions(currentUser);
     updateUi(currentUser);
     clearInputFields();
   } else {
@@ -272,6 +312,14 @@ btnLogin.addEventListener('click', function (e) {
   }
 });
 
+function pushDate() {
+  currentUser.movementsDates.push(new Date(Date.now()));
+}
+
+function updateDateOnTransfer() {
+  pushDate();
+  userToTransferTo.movementsDates.push(new Date(Date.now()));
+}
 // Request Loan.
 btnLoan.addEventListener('click', function (e) {
   e.preventDefault();
@@ -284,9 +332,10 @@ btnLoan.addEventListener('click', function (e) {
   if (loanValidity) {
     setTimeout(function () {
       currentUser.transactions.push(userLoanInput);
+      pushDate();
       calculateAllBalances(accounts);
       updateUi(currentUser);
-      currentUserTransactions(currentUser.transactions);
+      currentUserTransactions(currentUser);
     }, 3000);
   } else {
     clearInputFields();
@@ -314,8 +363,10 @@ btnTransfer.addEventListener('click', function (e) {
   ) {
     currentUser.transactions.push(-amountToTransfer);
     userToTransferTo.transactions.push(amountToTransfer);
+    pushDate();
+    userToTransferTo.movementsDates.push(new Date(Date.now()));
     calculateAllBalances(accounts);
-    currentUserTransactions(currentUser.transactions);
+    currentUserTransactions(currentUser);
     updateUi(currentUser);
     clearInputFields();
   }
@@ -343,6 +394,25 @@ btnClose.addEventListener('click', function (e) {
 let isSorted = false;
 btnSort.addEventListener('click', function (e) {
   e.preventDefault();
-  currentUserTransactions(currentUser.transactions, !isSorted);
+  currentUserTransactions(currentUser, !isSorted);
   isSorted = !isSorted;
 });
+
+console.log(account1.movementsDates[0]);
+
+console.log(new Date(2037, 10, 31, 12, 15, 26, 5));
+
+console.log(new Date(3 * 24 * 60 * 60 * 1000));
+
+// Creating a Date object for the current moment
+const currentDate = new Date();
+
+// Getting the UNIX time (number of seconds since 1970)
+const unixTime = currentDate.getTime() / 1000; // Divide by 1000 to convert milliseconds to seconds
+
+// Converting a Date object to an ISO string
+const isoString = currentDate.toISOString();
+
+console.log('Current Date:', currentDate);
+console.log('UNIX Time:', unixTime);
+console.log('ISO String:', isoString);
