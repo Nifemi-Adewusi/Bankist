@@ -5,42 +5,86 @@
 // BANKIST APP
 
 // Data
-const AccountConstructor = function (owner, transactions, interestRate, pin) {
-  this.owner = owner;
-  this.transactions = transactions;
-  this.interestRate = interestRate;
-  this.pin = pin;
+
+const account1 = {
+  owner: 'Jonas Schmedtmann',
+  transactions: [200, 455.23, -306.5, 25000, -642.21, -133.9, 79.97, 1300],
+  interestRate: 1.2, // %
+  pin: 1111,
+
+  movementsDates: [
+    '2019-11-18T21:31:17.178Z',
+    '2019-12-23T07:42:02.383Z',
+    '2020-01-28T09:15:04.904Z',
+    '2020-04-01T10:17:24.185Z',
+    '2020-05-08T14:11:59.604Z',
+    '2020-05-27T17:01:17.194Z',
+    '2020-07-11T23:36:17.929Z',
+    '2020-07-12T10:51:36.790Z',
+  ],
+  currency: 'EUR',
+  locale: 'pt-PT', // de-DE
 };
-const account1 = new AccountConstructor(
-  'Jonas Schmedtmann',
-  [200, 450, -400, 3000, -650, -130, 70, 1300],
-  1.2,
-  1111
-);
 
-const account2 = new AccountConstructor(
-  'Jessica Davis',
-  [5000, 3400, -150, -790, -3210, -1000, 8500, -30],
-  1.5,
-  2222
-);
+const account2 = {
+  owner: 'Jessica Davis',
+  transactions: [5000, 3400, -150, -790, -3210, -1000, 8500, -30],
+  interestRate: 1.5,
+  pin: 2222,
 
-const account3 = new AccountConstructor(
-  'Steven Thomas Williams',
-  [200, -200, 340, -300, -20, 50, 400, -460],
-  0.7,
-  3333
-);
+  movementsDates: [
+    '2019-11-01T13:15:33.035Z',
+    '2019-11-30T09:48:16.867Z',
+    '2019-12-25T06:04:23.907Z',
+    '2020-01-25T14:18:46.235Z',
+    '2020-02-05T16:33:06.386Z',
+    '2020-04-10T14:43:26.374Z',
+    '2020-06-25T18:49:59.371Z',
+    '2020-07-26T12:01:20.894Z',
+  ],
+  currency: 'USD',
+  locale: 'en-US',
+};
 
-const account4 = new AccountConstructor(
-  'Sarah Smith',
-  [430, 1000, 700, 50, 90],
-  1,
-  4444
-);
+const account3 = {
+  owner: 'Steven Thomas Williams',
+  transactions: [200, -200, 340, -300, -20, 50, 400, -460],
+  interestRate: 0.7,
+  pin: 3333,
+  movementsDates: [
+    '2020-11-01T13:15:33.035Z',
+    '2020-11-30T09:48:16.867Z',
+    '2021-12-25T06:04:23.907Z',
+    '2022-01-25T14:18:46.235Z',
+    '2022-02-05T16:33:06.386Z',
+    '2023-04-10T14:43:26.374Z',
+    '2023-06-25T18:49:59.371Z',
+    '2023-07-26T12:01:20.894Z',
+  ],
+  currency: 'USD',
+  locale: 'en-US',
+};
+
+const account4 = {
+  owner: 'Sarah Smith',
+  transactions: [430, 1000, 700, 50, 90],
+  interestRate: 1,
+  pin: 4444,
+  movementsDates: [
+    '2020-11-01T13:15:33.035Z',
+    '2020-11-30T09:48:16.867Z',
+    '2021-12-25T06:04:23.907Z',
+    '2022-01-25T14:18:46.235Z',
+    '2022-02-05T16:33:06.386Z',
+    '2023-04-10T14:43:26.374Z',
+    '2023-06-25T18:49:59.371Z',
+    '2023-07-26T12:01:20.894Z',
+  ],
+  currency: 'EUR',
+  locale: 'pt-PT',
+};
 
 const accounts = [account1, account2, account3, account4];
-
 // Elements
 const labelWelcome = document.querySelector('.welcome');
 const labelDate = document.querySelector('.date');
@@ -95,7 +139,7 @@ function currentUserTransactions(transactions, sort = false) {
       transactionIndex + 1
     } ${transactionType}</div>
           <div class="movements__date"></div>
-          <div class="movements__value">${transaction}€</div>
+          <div class="movements__value">${transaction.toFixed(2)}€</div>
         </div>`;
     containerMovements.insertAdjacentHTML('afterbegin', allTransactions);
   });
@@ -124,7 +168,7 @@ function calculateAllBalances(accs) {
       return accumulator + currentValue;
     },
     0);
-    acc.totalBalance = totalBalance;
+    acc.totalBalance = totalBalance.toFixed(2);
     const totalDepositsArray = acc.transactions.filter(function (value) {
       return value > 0;
     });
@@ -133,20 +177,16 @@ function calculateAllBalances(accs) {
     });
     acc.depositsArray = totalDepositsArray;
     acc.withdrawalArray = totalWithdrawalsArray;
-    acc.totalDeposits = totalDepositsArray.reduce(function (
-      accumulator,
-      currentValue
-    ) {
-      return accumulator + currentValue;
-    },
-    0);
-    acc.totalWithdrawals = totalWithdrawalsArray.reduce(function (
-      accumulator,
-      currentIndex
-    ) {
-      return accumulator + Math.abs(currentIndex);
-    },
-    0);
+    acc.totalDeposits = totalDepositsArray
+      .reduce(function (accumulator, currentValue) {
+        return accumulator + currentValue;
+      }, 0)
+      .toFixed(2);
+    acc.totalWithdrawals = totalWithdrawalsArray
+      .reduce(function (accumulator, currentIndex) {
+        return accumulator + Math.abs(currentIndex);
+      }, 0)
+      .toFixed(2);
     acc.totalInterest = totalDepositsArray
       .map(function (value) {
         return (value * acc.interestRate) / 100;
@@ -156,7 +196,8 @@ function calculateAllBalances(accs) {
       })
       .reduce(function (accumulator, currentIndex) {
         return accumulator + currentIndex;
-      }, 0);
+      }, 0)
+      .toFixed(2);
   });
 }
 
@@ -234,7 +275,7 @@ btnLogin.addEventListener('click', function (e) {
 // Request Loan.
 btnLoan.addEventListener('click', function (e) {
   e.preventDefault();
-  const userLoanInput = Number(inputLoanAmount.value);
+  const userLoanInput = Math.floor(inputLoanAmount.value);
   clearInputFields();
 
   const loanValidity = currentUser.transactions.some(function (value) {
