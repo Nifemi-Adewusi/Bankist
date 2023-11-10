@@ -5,10 +5,13 @@
 // BANKIST APP
 
 // Data
-
+// ₦
 const account1 = {
-  owner: 'Jonas Schmedtmann',
-  transactions: [200, 455.23, -306.5, 25000, -642.21, -133.9, 79.97, 1300],
+  owner: 'Nifemi Adewusi',
+  transactions: [
+    200, 455.23, -306.5, 25000, -642.21, -133.9, 79.97, 1300, 10000, 3000,
+    24000, -2134, -90000, 200000,
+  ],
   interestRate: 1.2, // %
   pin: 1111,
 
@@ -17,17 +20,23 @@ const account1 = {
     '2019-12-23T07:42:02.383Z',
     '2020-01-28T09:15:04.904Z',
     '2020-04-01T10:17:24.185Z',
-    '2020-05-08T14:11:59.604Z',
-    '2020-05-27T17:01:17.194Z',
-    '2020-07-11T23:36:17.929Z',
-    '2020-07-12T10:51:36.790Z',
+    '2023-09-08T14:11:59.604Z',
+    '2023-10-05T17:01:17.194Z',
+    '2023-11-06T23:36:17.929Z',
+    '2023-11-08T10:51:36.790Z',
+    '2023-11-08T10:51:36.790Z',
+    '2023-11-08T10:51:36.790Z',
+    '2023-11-08T10:51:36.790Z',
+    '2023-11-08T10:51:36.790Z',
+    '2023-11-08T10:51:36.790Z',
+    '2023-11-08T10:51:36.790Z',
   ],
   currency: 'EUR',
   locale: 'pt-PT', // de-DE
 };
 
 const account2 = {
-  owner: 'Jessica Davis',
+  owner: 'Ibukun Oyebanji',
   transactions: [5000, 3400, -150, -790, -3210, -1000, 8500, -30],
   interestRate: 1.5,
   pin: 2222,
@@ -47,7 +56,7 @@ const account2 = {
 };
 
 const account3 = {
-  owner: 'Steven Thomas Williams',
+  owner: 'Moyinoluwa Atunnise',
   transactions: [200, -200, 340, -300, -20, 50, 400, -460],
   interestRate: 0.7,
   pin: 3333,
@@ -66,7 +75,7 @@ const account3 = {
 };
 
 const account4 = {
-  owner: 'Sarah Smith',
+  owner: 'Adeola Adeoye',
   transactions: [430, 1000, 700, 50, 90],
   interestRate: 1,
   pin: 4444,
@@ -120,6 +129,28 @@ const currencies = new Map([
 const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
 
 /////////////////////////////////////////////////
+
+const calcDaysPassed = (date1, date2) =>
+  Math.round(Math.abs(date2 - date1) / (24 * 60 * 60 * 1000));
+
+function formatDateMovement(date) {
+  const daysPassed = calcDaysPassed(new Date(), date);
+  if (daysPassed === 0) {
+    return 'Today';
+  } else if (daysPassed === 1) {
+    return 'Yesterday';
+  } else if (daysPassed <= 7) {
+    return `${daysPassed} days ago`;
+  } else {
+    const newDateObject = new Date();
+    const newIntl = new Intl.DateTimeFormat(navigator.language, {
+      month: 'numeric',
+      day: 'numeric',
+      year: 'numeric',
+    }).format(newDateObject);
+    return newIntl;
+  }
+}
 function currentUserTransactions(account, sort = false) {
   containerMovements.innerHTML = '';
   const sorted = sort
@@ -135,21 +166,17 @@ function currentUserTransactions(account, sort = false) {
   sorted.forEach(function (transaction, transactionIndex) {
     const transactionType = transaction > 0 ? 'deposit' : 'withdrawal';
     const date = new Date(account.movementsDates[transactionIndex]);
-    const month = `${date.getMonth() + 1}`.padStart(2, 0);
-    const year = `${date.getFullYear()}`;
-    const dayDate = `${date.getDate()}`.padStart(2, 0);
-    const hours = `${date.getHours()}`.padStart(2, 0);
-    const minutes = `${date.getMinutes()}`.padStart(2, 0);
-    // const timeFrame = hours < 12 ? 'am' : 'pm';
-    const displayDate = `${dayDate}/${month}/${year}`;
+    const displayDate = `${formatDateMovement(date)}`;
 
     const allTransactions = ` <div class="movements__row">
-          <div class="movements__type movements__type--${transactionType}">${
+            <div class="movements__type movements__type--${transactionType}">${
       transactionIndex + 1
     } ${transactionType}</div>
-          <div class="movements__date">${displayDate}</div>
-          <div class="movements__value">${transaction.toFixed(2)}€</div>
-        </div>`;
+            <div class="movements__date">${displayDate}</div>
+            <div class="movements__value">₦${Math.abs(
+              transaction.toFixed(2)
+            )}</div>
+          </div>`;
     containerMovements.insertAdjacentHTML('afterbegin', allTransactions);
   });
 }
@@ -180,7 +207,7 @@ function checkTimeOfTheDay() {
     return 'Good Night';
   } else if (hour >= 0 && hour <= 3) {
     return 'You Should Be In Bed.';
-  } else if (hour >= 3 && hour <= 11) {
+  } else if (hour >= 4 && hour <= 11) {
     return 'Good Morning';
   }
 }
@@ -229,8 +256,13 @@ function calculateAllBalances(accs) {
 
 calculateAllBalances(accounts);
 
+function formatMoney(money) {
+  const intlApi = new Intl.NumberFormat(navigator.language).format(money);
+  return `${intlApi}`;
+}
+
 function getFirstName(user) {
-  const userStr = user.split(' ');
+  const userStr = user.owner.split(' ');
   const firstIndex = userStr[0];
   const firstCharIndex = firstIndex[0].toUpperCase() + firstIndex.slice(1);
   return firstCharIndex;
@@ -259,25 +291,34 @@ function logOut() {
 let currentUser;
 
 function showDate() {
-  const now = new Date(Date.now());
-  const day = `${now.getDate()}`.padStart(2, 0);
-  const month = `${now.getMonth() + 1}`.padStart(2, 0);
-  const hours = `${now.getHours()}`.padStart(2, 0);
-  const minutes = `${now.getMinutes()}`.padStart(2, 0);
-  const amOrPm = now.getHours() >= 12 ? 'pm' : 'am';
-
-  labelDate.textContent = `${day}/${month}/${now.getFullYear()},${hours}:${minutes}${amOrPm}`;
+  const now = new Date();
+  const options = {
+    hour: 'numeric',
+    minute: 'numeric',
+    day: 'numeric',
+    year: 'numeric',
+    month: 'short',
+    weekday: 'short',
+  };
+  const intlApi = new Intl.DateTimeFormat(navigator.language, options).format(
+    now
+  );
+  labelDate.textContent = intlApi;
 }
 
 function updateUi(currentUser) {
+  const currentHour = new Date().getHours();
   containerApp.style.opacity = 1;
-  labelBalance.textContent = `${currentUser.totalBalance}€`;
-  labelSumIn.textContent = `${currentUser.totalDeposits}€`;
-  labelSumOut.textContent = `${currentUser.totalWithdrawals}€`;
-  labelSumInterest.textContent = `${currentUser.totalInterest}€`;
-  labelWelcome.textContent = `${checkTimeOfTheDay()}, ${getFirstName(
-    currentUser.owner
-  )}`;
+  labelBalance.textContent = `₦${formatMoney(currentUser.totalBalance)}`;
+  labelSumIn.textContent = `₦${formatMoney(currentUser.totalDeposits)}`;
+  labelSumOut.textContent = `₦${formatMoney(currentUser.totalWithdrawals)}`;
+  labelSumInterest.textContent = `₦${formatMoney(currentUser.totalInterest)}`;
+
+  labelWelcome.textContent =
+    currentHour >= 4
+      ? `${checkTimeOfTheDay()} ${getFirstName(currentUser)}`
+      : `You Should Be I Bed`;
+  // labelWelcome.textContent = 'Logged In';
   showDate();
 }
 
@@ -396,23 +437,5 @@ btnSort.addEventListener('click', function (e) {
   e.preventDefault();
   currentUserTransactions(currentUser, !isSorted);
   isSorted = !isSorted;
+  updateUi(currentUser);
 });
-
-console.log(account1.movementsDates[0]);
-
-console.log(new Date(2037, 10, 31, 12, 15, 26, 5));
-
-console.log(new Date(3 * 24 * 60 * 60 * 1000));
-
-// Creating a Date object for the current moment
-const currentDate = new Date();
-
-// Getting the UNIX time (number of seconds since 1970)
-const unixTime = currentDate.getTime() / 1000; // Divide by 1000 to convert milliseconds to seconds
-
-// Converting a Date object to an ISO string
-const isoString = currentDate.toISOString();
-
-console.log('Current Date:', currentDate);
-console.log('UNIX Time:', unixTime);
-console.log('ISO String:', isoString);
