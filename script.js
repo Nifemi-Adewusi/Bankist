@@ -76,7 +76,7 @@ const account3 = {
 
 const account4 = {
   owner: 'Adeola Adeoye',
-  transactions: [430, 1000, 700, 50, 90],
+  transactions: [430, 1000, 700, 50, 90, 20000, 1400, 1200],
   interestRate: 1,
   pin: 4444,
   movementsDates: [
@@ -129,7 +129,7 @@ const currencies = new Map([
 const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
 
 /////////////////////////////////////////////////
-
+let globalTimer;
 const calcDaysPassed = (date1, date2) =>
   Math.round(Math.abs(date2 - date1) / (24 * 60 * 60 * 1000));
 
@@ -151,6 +151,32 @@ function formatDateMovement(date) {
     return newIntl;
   }
 }
+
+function startLogoutTimer() {
+  // Set Time to 5 minutes
+  let time = 300;
+  function tick() {
+    let minutes = String(Math.trunc(time / 60)).padStart(2, 0);
+    let seconds = String(time % 60).padStart(2, 0);
+
+    // when seconds is 0, logout
+
+    labelTimer.textContent = `${minutes}:${seconds}`;
+    if (time === 0) {
+      clearInterval(timer);
+      logOut();
+    } else {
+      time--;
+    }
+  }
+  // Call the timer every second
+
+  // On each callback, print the remaining time to the UI
+  tick();
+  const timer = setInterval(tick, 1000);
+  return timer;
+}
+
 function currentUserTransactions(account, sort = false) {
   containerMovements.innerHTML = '';
   const sorted = sort
@@ -334,8 +360,15 @@ btnLogin.addEventListener('click', function (e) {
   });
   if (currentUser) {
     currentUserTransactions(currentUser);
-    updateUi(currentUser);
     clearInputFields();
+    // Checks If globalTimer is defined, if it is, it cleared
+    if (globalTimer) {
+      clearInterval(globalTimer);
+    }
+    // If globalTimer is defined or not defined, a new ID value would be assigned to globalTimer which is a result of calling startLogoutTimer
+    globalTimer = startLogoutTimer();
+
+    updateUi(currentUser);
   } else {
     const matchingUser = accounts.find(function (account) {
       return account.initials === userLoginInitials;
@@ -439,3 +472,5 @@ btnSort.addEventListener('click', function (e) {
   isSorted = !isSorted;
   updateUi(currentUser);
 });
+
+
