@@ -199,8 +199,8 @@ function currentUserTransactions(account, sort = false) {
       transactionIndex + 1
     } ${transactionType}</div>
             <div class="movements__date">${displayDate}</div>
-            <div class="movements__value">₦${Math.abs(
-              transaction.toFixed(2)
+            <div class="movements__value">₦${formatMoney(
+              Math.abs(transaction.toFixed(2))
             )}</div>
           </div>`;
     containerMovements.insertAdjacentHTML('afterbegin', allTransactions);
@@ -316,6 +316,14 @@ function logOut() {
 
 let currentUser;
 
+function resetGlobalTimeOut() {
+  // Checks If globalTimer is defined, if it is, it cleared
+  if (globalTimer) {
+    clearInterval(globalTimer);
+  }
+  // If globalTimer is defined or not defined, a new ID value would be assigned to globalTimer which is a result of calling startLogoutTimer
+  globalTimer = startLogoutTimer();
+}
 function showDate() {
   const now = new Date();
   const options = {
@@ -361,12 +369,7 @@ btnLogin.addEventListener('click', function (e) {
   if (currentUser) {
     currentUserTransactions(currentUser);
     clearInputFields();
-    // Checks If globalTimer is defined, if it is, it cleared
-    if (globalTimer) {
-      clearInterval(globalTimer);
-    }
-    // If globalTimer is defined or not defined, a new ID value would be assigned to globalTimer which is a result of calling startLogoutTimer
-    globalTimer = startLogoutTimer();
+    resetGlobalTimeOut();
 
     updateUi(currentUser);
   } else {
@@ -410,6 +413,7 @@ btnLoan.addEventListener('click', function (e) {
       calculateAllBalances(accounts);
       updateUi(currentUser);
       currentUserTransactions(currentUser);
+      resetGlobalTimeOut();
     }, 3000);
   } else {
     clearInputFields();
@@ -443,6 +447,7 @@ btnTransfer.addEventListener('click', function (e) {
     currentUserTransactions(currentUser);
     updateUi(currentUser);
     clearInputFields();
+    resetGlobalTimeOut();
   }
 });
 
@@ -468,9 +473,8 @@ btnClose.addEventListener('click', function (e) {
 let isSorted = false;
 btnSort.addEventListener('click', function (e) {
   e.preventDefault();
+  resetGlobalTimeOut();
   currentUserTransactions(currentUser, !isSorted);
   isSorted = !isSorted;
   updateUi(currentUser);
 });
-
-
