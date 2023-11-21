@@ -93,7 +93,7 @@ const account4 = {
   locale: 'pt-PT',
 };
 
-const accounts = [account1, account2, account3, account4];
+let accounts = [account1, account2, account3, account4];
 // Elements
 const labelWelcome = document.querySelector('.welcome');
 const labelDate = document.querySelector('.date');
@@ -347,14 +347,26 @@ function updateUi(currentUser) {
   labelSumIn.textContent = `₦${formatMoney(currentUser.totalDeposits)}`;
   labelSumOut.textContent = `₦${formatMoney(currentUser.totalWithdrawals)}`;
   labelSumInterest.textContent = `₦${formatMoney(currentUser.totalInterest)}`;
-
   labelWelcome.textContent =
     currentHour >= 4
       ? `${checkTimeOfTheDay()} ${getFirstName(currentUser)}`
-      : `You Should Be I Bed`;
+      : `You Should Be In Bed`;
   // labelWelcome.textContent = 'Logged In';
   showDate();
+  // Saving to local storage
+  // 1 JSON.stingify(accounts) converts the accounts array into a string and stores the result as a key value pair, the key been bankistAccounts and the value been the accounts array itself, saves the accounts array to local storage
+  localStorage.setItem('bankistAccounts', JSON.stringify(accounts));
 }
+
+function loadDataFromLocalStorage() {
+  const storedAccounts = localStorage.getItem('bankistAccounts');
+  // Checks if a value other than null is assigned the bankistAccounts key and reassigns the accounts array to the newly returned accounts array, the parse method on JSON converts the value to it's original data structure which was originally an array.
+  if (storedAccounts) {
+    accounts = JSON.parse(storedAccounts);
+  }
+}
+
+loadDataFromLocalStorage();
 
 // Implementing Login.
 btnLogin.addEventListener('click', function (e) {
@@ -373,6 +385,7 @@ btnLogin.addEventListener('click', function (e) {
 
     updateUi(currentUser);
   } else {
+    currentUser = {};
     const matchingUser = accounts.find(function (account) {
       return account.initials === userLoginInitials;
     });
@@ -413,6 +426,7 @@ btnLoan.addEventListener('click', function (e) {
       calculateAllBalances(accounts);
       updateUi(currentUser);
       currentUserTransactions(currentUser);
+
       resetGlobalTimeOut();
     }, 3000);
   } else {
@@ -445,6 +459,7 @@ btnTransfer.addEventListener('click', function (e) {
     userToTransferTo.movementsDates.push(new Date(Date.now()));
     calculateAllBalances(accounts);
     currentUserTransactions(currentUser);
+
     updateUi(currentUser);
     clearInputFields();
     resetGlobalTimeOut();
