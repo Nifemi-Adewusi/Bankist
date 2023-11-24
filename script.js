@@ -57,7 +57,7 @@ const account2 = {
 
 const account3 = {
   owner: 'Moyinoluwa Atunnise',
-  transactions: [200, -200, 340, -300, -20, 50, 400, -460],
+  transactions: [200, -200, 340, -300, -20, 50, 400, -460, 2000, 1000, 10000, 100000],
   interestRate: 0.7,
   pin: 3333,
   movementsDates: [
